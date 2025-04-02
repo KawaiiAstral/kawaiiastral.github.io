@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        function redirectToApp() {
+            window.location.href = "vcc://vpm/addRepo?url=https%3A%2F%2Fvpm.anatawa12.com%2Fvpm.json";
+            
+            // フォールバック処理（数秒後に別のページに遷移）
+            setTimeout(function() {
+                window.location.href = "https://booth.pm/ja/items/4885109";
+            }, 6000);
+        }
+    </script>
+</head>
+<body onload="redirectToApp()">
+    <p>アプリにリダイレクト中...</p>
+    <p>自動的にリダイレクトされない場合は、<a href="vcc://vpm/addRepo?url=https%3A%2F%2Fvpm.anatawa12.com%2Fvpm.json">こちらをクリック</a>してください。</p>
+</body>
+</html>
