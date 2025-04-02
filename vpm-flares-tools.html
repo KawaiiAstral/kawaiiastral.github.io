@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        function redirectToApp() {
+            window.location.href = "vcc://vpm/addRepo?url=https://whiteflare.github.io/vpm-repos/vpm.json";
+            
+            // フォールバック処理（数秒後に別のページに遷移）
+            setTimeout(function() {
+                window.location.href = "https://whiteflare.github.io/vpm-repos/docs/tools";
+            }, 6000);
+        }
+    </script>
+</head>
+<body onload="redirectToApp()">
+    <p>アプリにリダイレクト中...</p>
+    <p>自動的にリダイレクトされない場合は、<a href="vcc://vpm/addRepo?url=https://whiteflare.github.io/vpm-repos/vpm.json">こちらをクリック</a>してください。</p>
+</body>
+</html>
