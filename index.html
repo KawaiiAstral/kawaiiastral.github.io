@@ -1,0 +1,1538 @@
+^ 
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="author" content="Black-Astral" />
+    <title>Astral Profile</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      background-size: 400% 400%;
+      animation: bgFlow 15s ease infinite;
+      color: #e2e8f0;
+      font-family: 'M PLUS Rounded 1c', 'Meiryo', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    @keyframes bgFlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -20%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      text-shadow: 1px 1px 2px #000;
+      transition: text-shadow 0.3s ease;
+    }
+    header h1:hover {
+      text-shadow: 2px 2px 4px #000;
+    }
+    header p {
+      font-size: 1.15rem;
+      color: #7dd3fc;
+    }
+    .profile-box {
+      background: linear-gradient(to bottom, #2d3748, #1e293b);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 28px rgba(99,102,241,0.45);
+      max-width: 30rem;
+      width: 100%;
+      margin-bottom: 2rem;
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .profile-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 32px rgba(99,102,241,0.55);
+    }
+    .profile-icon {
+      width: 10rem;
+      height: 10rem;
+      border-radius: 50%;
+      margin: 0 auto 1.2rem;
+      border: 4px solid #7f9cf5;
+      display: block;
+      box-shadow: 0 0 14px rgba(124,58,237,0.6);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .profile-icon:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(124,58,237,0.8);
+    }
+    .profile-box h2,
+    .profile-box p {
+      text-align: center;
+    }
+    .profile-box h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+    .profile-box p {
+      font-size: 1rem;
+      color: #cbd5e0;
+      margin-top: 0.5rem;
+    }
+    .link-section {
+      background: #202938;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+      max-width: 30rem;
+      width: 100%;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .link-section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px rgba(99,102,241,0.45);
+    }
+    .link-section h3 {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+    .link-section ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .link-section a {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: #63b3ed;
+      text-decoration: none;
+      font-size: 1.05rem;
+      padding: 0.7rem 1.2rem;
+      border-radius: 0.8rem;
+      background-color: rgba(99,102,241,0.12);
+      transition: all 0.3s ease;
+    }
+    .link-section a:hover {
+      background-color: rgba(99,102,241,0.25);
+      color: #e0e7ff;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+    }
+    /* XREA広告 */
+    .xrea-banner {
+      display: none;
+      background: rgba(255,255,0,0.05);
+      border: 2px solid rgba(255,255,0,0.7);
+      border-radius: 1rem;
+      box-shadow: 0 0 18px 3px rgba(255,255,0,0.4);
+      padding: 1.5rem;
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      color: #facc15;
+      transition: opacity 0.3s ease;
+    }
+    .popup-info {
+      overflow-y: auto;
+      max-height: 80vh;
+      padding-right: 15px;
+      position: fixed;
+      left: 50%;
+      background: rgba(30,41,59,0.95);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(99,102,241,0.7);
+      z-index: 3000;
+      display: none;
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .hidden-popup {
+      overflow-y: auto;
+      max-height: 70vh;
+      position: fixed;
+      left: 50%;
+      background: rgba(30,41,59,0.95);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(99,102,241,0.7);
+      z-index: 3000;
+      display: none;
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .omikuji-popup {
+      overflow-y: auto;
+      max-height: 60vh;
+      position: fixed;
+      left: 50%;
+      background: rgba(30,41,59,0.95);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(99,102,241,0.7);
+      z-index: 3000;
+      display: none;
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .popup-info.show,
+    .hidden-popup.show,
+    .omikuji-popup.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(-50%);
+      animation: fadeInUp 0.3s ease;
+    }
+    .popup-info button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      background: transparent;
+      border: none;
+      color: #f87171;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .omikuji-popup {
+      top: 20%;
+      max-width: 80%;
+      width: 90%;
+    }
+    .show-btn {
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1.6rem;
+      font-size: 1rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.8rem;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    }
+    .show-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+    }
+    footer {
+      margin-top: 2rem;
+      color: #a0aec0;
+      font-size: 0.85rem;
+      text-align: center;
+      transition: opacity 0.3s ease;
+    }
+    @media (max-width: 480px) {
+      .profile-icon {
+        width: 8rem;
+        height: 8rem;
+      }
+      .profile-box h2 { font-size: 1.3rem; }
+      .profile-box p { font-size: 0.95rem; }
+      .link-section a {
+        font-size: 0.95rem;
+        padding: 0.6rem 1rem;
+      }
+      footer { font-size: 0.75rem; }
+    }
+    table.reversi-board {
+      margin: 10px auto; border-collapse: collapse;
+    }
+    .reversi-board td {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #333;
+      position: relative;
+    }
+
+    .reversi-board td.hint::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: rgba(0, 0, 0, 0.2); /* 薄く黒い */
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    table.reversi-board td.black { background: radial-gradient(circle, #000 60%, transparent 60%); }
+    table.reversi-board td.white { background: radial-gradient(circle, #fff 60%, transparent 60%); }
+
+    /* Flip animation */
+    @keyframes flip {
+      0% {
+        transform: rotateY(0deg);
+      }
+      50% {
+        transform: rotateY(90deg);
+        background: transparent;
+      }
+      100% {
+        transform: rotateY(0deg);
+      }
+    }
+    .flip {
+      animation: flip 0.6s ease forwards;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+
+    #runnerCanvas {
+      background-color: #87ceeb;
+      border: 2px solid #000;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-72E0Z6REMG"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-72E0Z6REMG');
+  </script>
+  </head>
+  <script>
+    const getCookie = (key) => {
+      return document.cookie.split('; ').find(c => c.startsWith(key + '='))?.split('=')[1] || null;
+    };
+
+    const setCookie = (key, val, days) => {
+      const d = new Date();
+      d.setTime(d.getTime() + days * 864e5);
+      document.cookie = `${key}=${val}; expires=${d.toUTCString()}; path=/`;
+    };
+
+    function showWarningA() {
+      document.body.innerHTML = `
+        <div style="padding:50px;font-family:'Courier New',monospace;color:#ff4d4d;background:#000;height:100vh;">
+          <h1 style="font-size:3em;">⚠️【警告 - 不審な挙動を検出】⚠️</h1>
+          <p style="font-size:1.4em;line-height:2;">
+            現在、このページにおいて<strong>開発者ツールの起動またはコード解析の試み</strong>が検出されました。<br><br>
+            この行為は、Webページの保護された構造への不正アクセスを目的としたものである可能性があり、<br>
+            <strong>不正アクセス禁止法（日本）第3条</strong>等の法令に抵触する恐れがあります。<br><br>
+            お客様のIPアドレス・ブラウザ指紋・アクセス経路・操作タイムスタンプは既に記録され、<br>
+            継続的な監視対象として指定されました。<br><br>
+            本ページは、セキュリティ保護のため異常アクセスに対して自動応答システムを導入しています。<br>
+            不正なアクセスが継続される場合、<strong>通信の遮断・制限、または法的通知</strong>が行われる場合があります。<br><br>
+            🔒【記録済み情報】<br>
+            ▸ IPアドレス（匿名化されません）<br>
+            ▸ User-Agent<br>
+            ▸ 操作履歴（開発者ツールの開閉タイミングを含む）<br><br>
+            本メッセージはサーバーへ送信され、改ざん・回避はできません。<br><br>
+            🚫<strong>これ以上の解析行為は直ちに中止してください。</strong>
+          </p>
+        </div>
+      `;
+    }
+
+
+    function showWarningB() {
+      document.body.innerHTML = `
+        <div style="padding:50px;font-family:'Courier New',monospace;color:#ff0000;background:#000;height:100vh;">
+          <h1 style="font-size:3em;">🚨【重大警告】再犯行為が検出されました 🚨</h1>
+          <p style="font-size:1.4em;line-height:2;">
+            再度、開発者ツールの使用・ページ内部構造の検査を試みた痕跡が確認されました。<br><br>
+            これは単なる閲覧を超えた、<strong>意図的なリバースエンジニアリング・改ざん行為</strong>と見なされます。<br><br>
+            📡 すでに以下の情報が複数回記録され、<strong>高度な監視状態</strong>に移行しました：<br>
+            ▸ IPアドレス<br>
+            ▸ ブラウザ識別情報（Canvas Fingerprint 等を含む）<br>
+            ▸ 操作ログ（解析日時・滞在時間・アクション順序）<br><br>
+            この情報はセキュリティ管理者に即時送信され、<strong>調査対象端末としてリスト化</strong>されました。<br><br>
+            ⚖️ 本行為が続く場合、技術的措置に加えて、<strong>プロバイダへの通告・法的手続き</strong>を取る可能性があります。<br><br>
+            🔐 本ページはリアルタイム検知システムにより保護されており、回避・偽装は不可能です。<br>
+            このままアクセスを継続した場合、<strong>強制遮断・永続的なアクセス禁止措置</strong>が即座に実行されます。<br><br>
+            🚨<strong>今すぐすべての開発者ツールを閉じ、ページから離れてください。</strong>
+          </p>
+        </div>
+      `;
+    }
+
+
+    function detectDebugger() {
+      let triggered = false;
+
+      let count = parseInt(getCookie("warn_count") || "0", 10);
+
+      if (count >= 2) {
+        showWarningB();
+        return;
+      }
+
+      const check = () => {
+        const before = new Date();
+        debugger;
+        const after = new Date();
+
+        if (after - before > 10 && !triggered) {
+          triggered = true;
+          count++;
+          setCookie("warn_count", count);
+          if (count >= 2) {
+            showWarningB();
+          } else {
+            setTimeout(showWarningA, 3000);
+          }
+        }
+      };
+
+      setInterval(check, 1000);
+    }
+
+    window.addEventListener("DOMContentLoaded", detectDebugger);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <body>
+    <header>
+      <h1>Welcome to Astral Site</h1>
+      <p>Astral Profile</p>
+    </header>
+    <main>
+      <section class="profile-box">
+        <img src="https://i.gyazo.com/25618f47093149f3faff9c96caad3bb3.png" alt="Avatar" class="profile-icon" />
+        <h2>Rusk&Sapphy使い / Black-Astral</h2>
+        <p>自由きままに生きてる生物、電車がすきだったり</p>
+      </section>
+      <section class="link-section">
+        <h3>🔗 リンク集</h3>
+        <ul>
+          <li>
+            <a href="https://vrchat.com/home/launch?worldId=wrld_545838b6-644e-4f2e-adec-65646637b788" target="_blank">🌍 ホームワールド</a>
+          </li>
+          <li>
+            <a href="https://vrchat.com/home/user/usr_5e075627-8b85-4bce-9242-7f3fd2ade453" target="_blank">💬 VRChat プロフィール</a>
+          </li>
+          <li>
+            <a href="https://x.com/AstralStelldayo" target="_blank">🐦 X（旧Twitter）</a>
+          </li>
+          <li>
+            <a href="https://astralshop.booth.pm/" target="_blank">🛍 Booth</a>
+          </li>
+        </ul>
+      </section>
+      <section id="noticeBox" class="popup-info">
+        <button onclick="hideNotice()">×</button>
+        <h3>📢 お知らせ</h3>
+        <p>現在特に お知らせはありません。</p>
+      </section>
+      <button class="show-btn" onclick="showNotice()">お知らせを表示</button>
+      <!-- XREA用広告 -->
+      <div class="xrea-banner" id="xreaAd">
+        <h3>XREA用広告</h3>
+        <script src="https://cache1.value-domain.com/xa.j?site=astraldao.s323.xrea.com"></script>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 AstralSHOP. All Rights Reserved.</p>
+      <p>Site Version 2025.4.16.0815</p>
+    </footer>
+    <script>
+    const showNotice = () => {
+      const notice = document.getElementById('noticeBox');
+      if (notice) {
+        notice.style.top = '20%';
+        notice.classList.add('show');
+      }
+    };
+    const hideNotice = () => {
+      const notice = document.getElementById('noticeBox');
+      if (notice) {
+        notice.classList.remove('show');
+      }
+    };
+    
+    
+    // DOMContentLoaded時の処理：XREA広告表示
+    window.addEventListener('DOMContentLoaded', () => {
+      const ad = document.getElementById('xreaAd');
+      if (ad && getCookie('adHidden') !== 'true') {
+        ad.style.display = 'block';
+        setTimeout(() => {
+          ad.style.display = 'none';
+          setCookie('adHidden', 'true', 7);
+        }, 5000);
+      }
+    });
+    
+    let tapCount = 0, tapLimit = 10;
+    const icon = document.querySelector('.profile-icon');
+    if (icon) {
+      icon.addEventListener('click', () => {
+        tapCount++;
+        if (tapCount === tapLimit) {
+          showHiddenFeature();
+          tapCount = 0;
+        }
+      });
+    }
+    
+    const showHiddenFeature = () => {
+      const existingPopup = document.querySelector('.hidden-popup');
+      if(existingPopup) { existingPopup.remove(); }
+      const hiddenFeature = document.createElement('div');
+      hiddenFeature.className = 'hidden-popup';
+      hiddenFeature.style.top = '20%';
+      hiddenFeature.innerHTML = `
+        <button onclick="this.parentElement.remove()" style="position:absolute;top:0.5rem;right:0.75rem;background:transparent;border:none;color:#f87171;font-size:1.2rem;cursor:pointer;">×</button>
+        <h3>🔒 隠し機能メニュー</h3>
+        <p>好きな遊びを選んでね：</p>
+        <div style="height: 1rem;"></div>
+        <button onclick="startBlockGame()" class="show-btn">🎮 ブロックくずし</button>
+        <button onclick="startOmikuji()" class="show-btn" style="margin-top:0.5rem;">🎲 おみくじ</button>
+        <button onclick="initReactionGame()" class="show-btn" style="margin-top:0.5rem;">⏱ 反射神経ゲーム</button>
+        <button onclick="initSnakeGame()" class="show-btn" style="margin-top:0.5rem;">🐍 スネークゲーム</button>
+        <button onclick="initReversiGame()" class="show-btn" style="margin-top:0.5rem;">⚪️リバーシ</button>
+        <button onclick="openWebOsu()" class="show-btn" style="margin-top:0.5rem;">🎵 osu</button>
+        <button onclick="openMinesweeper()" class="show-btn" style="margin-top:0.5rem;">💣 マインスイーパー</button>
+        <div id="hidden-content" style="margin-top:1rem;"></div>
+      `;
+      document.body.appendChild(hiddenFeature);
+      setTimeout(() => { 
+        hiddenFeature.classList.add('show'); 
+        hiddenFeature.style.display = 'block';
+      }, 10);
+    };
+    
+    let blockLevel = 1;
+    let blockBricks = [];
+
+    function loadLevel(level) {
+      blockBricks = [];
+      const maxPresetLevels = 15;
+      let rowCount = 3 + Math.floor(level / 2);
+      let colCount = 5 + Math.floor(level / 3);
+      if (level <= maxPresetLevels) {
+        loadPresetLevel(level, rowCount, colCount);
+      } else {
+        for (let row = 0; row < rowCount; row++) {
+          for (let col = 0; col < colCount; col++) {
+            if (Math.random() > 0.3) {
+              blockBricks.push({
+                x: col * (50 + 5) + 20,
+                y: row * (20 + 5) + 20,
+                width: 50,
+                height: 20,
+                destroyed: false
+              });
+            }
+          }
+        }
+      }
+    }
+
+    function loadPresetLevel(level, rows, cols) {
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          blockBricks.push({
+            x: col * (50 + 5) + 20,
+            y: row * (20 + 5) + 20,
+            width: 50,
+            height: 20,
+            destroyed: false
+          });
+        }
+      }
+    }
+
+    function resetBallAndPaddle(canvas, ctx) {
+      ballX = canvas.width / 2;
+      ballY = canvas.height - 30;
+      dx = 2;
+      dy = -2;
+      paddleX = (canvas.width - paddleWidth) / 2;
+    }
+
+    function nextBlockLevel(canvas, ctx) {
+      blockLevel++;
+      loadLevel(blockLevel);
+      resetBallAndPaddle(canvas, ctx);
+    }
+
+    let ballX, ballY, dx, dy;
+    let paddleX;
+    const paddleHeight = 10, paddleWidth = 60;
+
+    function startBlockGame() {
+      const hiddenContent = document.getElementById('hidden-content');
+      hiddenContent.innerHTML = `<canvas id="blockGame" width="300" height="200" style="background:#111; display:block; margin:1rem auto; border:2px solid #ccc;"></canvas>`;
+  
+      const canvas = document.getElementById("blockGame");
+      const ctx = canvas.getContext("2d");
+
+      let rightPressed = false, leftPressed = false, upPressed = false, downPressed = false;
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "d" || e.key === "D") rightPressed = true;
+        else if (e.key === "a" || e.key === "A") leftPressed = true;
+        else if (e.key === "w" || e.key === "W") upPressed = true; 
+        else if (e.key === "s" || e.key === "S") downPressed = true; 
+      });
+
+      document.addEventListener("keyup", (e) => {
+        if (e.key === "d" || e.key === "D") rightPressed = false;
+        else if (e.key === "a" || e.key === "A") leftPressed = false;
+        else if (e.key === "w" || e.key === "W") upPressed = false;
+        else if (e.key === "s" || e.key === "S") downPressed = false;
+      });
+
+      blockLevel = 1;
+      loadLevel(blockLevel);
+      resetBallAndPaddle(canvas, ctx);
+
+      function collisionDetection() {
+        blockBricks.forEach((brick) => {
+          if (!brick.destroyed) {
+            if (
+              ballX > brick.x &&
+              ballX < brick.x + brick.width &&
+              ballY > brick.y &&
+              ballY < brick.y + brick.height
+            ) {
+              dy = -dy;
+              brick.destroyed = true;
+            }
+          }
+        });
+      }
+
+      function drawBlockGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+        blockBricks.forEach((brick) => {
+          if (!brick.destroyed) {
+            ctx.beginPath();
+            ctx.rect(brick.x, brick.y, brick.width, brick.height);
+            ctx.fillStyle = "#34d399";
+            ctx.fill();
+            ctx.closePath();
+          }
+        });
+
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#63b3ed";
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#facc15";
+        ctx.fill();
+        ctx.closePath();
+
+        collisionDetection();
+
+        if (ballX + dx > canvas.width - 5 || ballX + dx < 5) {
+          dx = -dx;
+        }
+        if (ballY + dy < 5) {
+          dy = -dy;
+        } else if (ballY + dy > canvas.height - 5) {
+          if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+            dy = -dy;
+          } else {
+            hiddenContent.innerHTML = "<p style='color:tomato;text-align:center;margin-top:1rem;'>💥 ゲームオーバー！もう一度ブロックくずしをクリックして再開</p>";
+            return;
+          }
+        }
+
+        ballX += dx;
+        ballY += dy;
+        if (rightPressed && paddleX < canvas.width - paddleWidth) paddleX += 5;
+        else if (leftPressed && paddleX > 0) paddleX -= 5;
+
+        if (blockBricks.every(brick => brick.destroyed)) {
+          nextBlockLevel(canvas, ctx);
+        }
+
+        requestAnimationFrame(drawBlockGame);
+      }
+
+      drawBlockGame();
+    }
+
+    
+    const startOmikuji = () => {
+      const hiddenContent = document.getElementById('hidden-content');
+      hiddenContent.innerHTML = `
+        <div class="omikuji-loading" style="padding:1rem; text-align:center; border:2px solid #63b3ed; border-radius:0.8rem; background:#1e293b; margin-top:1rem;">
+          <h3>おみくじを引いています…</h3>
+          <div class="spinner" style="margin:1rem auto; width:40px; height:40px; border:4px solid #63b3ed; border-top:4px solid #1e293b; border-radius:50%; animation: spin 1s linear infinite;"></div>
+        </div>
+      `;
+      setTimeout(() => {
+        const results = [ "大吉 🎉", "中吉 🙂", "小吉 😊", "吉 👍", "末吉 🤞", "凶 😞", "大凶 💥" ];
+        const randomResult = results[Math.floor(Math.random() * results.length)];
+        hiddenContent.innerHTML = `
+          <div style="padding:1rem; text-align:center; border:2px solid #63b3ed; border-radius:0.8rem; background:#1e293b; margin-top:1rem; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <h3>おみくじの結果</h3>
+            <p style="font-size:1.5rem; font-weight:bold;">${randomResult}</p>
+          </div>
+        `;
+      }, 2000);
+    };
+    
+    let reactionStartTime, reactionTimeoutId;
+    let reactionIsWaiting = false, reactionHasStarted = false;
+    const initReactionGame = () => {
+      const hiddenContent = document.getElementById('hidden-content');
+      hiddenContent.innerHTML = `
+        <div id="reactionGame" style="text-align:center; padding:20px;">
+          <h2>🧠 反射神経ゲーム</h2>
+          <div id="reactionBox" style="width:300px; height:200px; margin:20px auto; background-color:gray; line-height:200px; font-size:24px; color:white; cursor:pointer; border-radius:12px;">
+            クリックでスタート
+          </div>
+          <p id="reactionResult" style="font-size:1.5em; margin-top:20px; font-weight:bold;"></p>
+          <button onclick="startReactionGame()" style="margin-top:20px; padding:10px 20px; font-size:1em; border:none; border-radius:8px; background-color:#2196f3; color:white; cursor:pointer;">
+            リトライ
+          </button>
+        </div>
+      `;
+      reactionStartTime = null;
+      reactionTimeoutId = null;
+      reactionIsWaiting = false;
+      reactionHasStarted = false;
+      setupReactionGame();
+    };
+    const setupReactionGame = () => {
+      const reactionBox = document.getElementById("reactionBox");
+      const reactionResult = document.getElementById("reactionResult");
+      reactionBox.addEventListener("click", () => {
+        if (!reactionHasStarted) {
+          startReactionGame();
+          return;
+        }
+        if (reactionIsWaiting) {
+          clearTimeout(reactionTimeoutId);
+          reactionResult.textContent = "⚠️ 早すぎ！やり直してね。";
+          reactionBox.style.backgroundColor = "#f44336";
+          reactionBox.textContent = "早すぎ！";
+          reactionHasStarted = false;
+        } else if (reactionStartTime) {
+          const reactionTime = Date.now() - reactionStartTime;
+          let comment = "";
+          if (reactionTime < 200) comment = "👑 神反応！";
+          else if (reactionTime < 300) comment = "⚡ 速い！";
+          else if (reactionTime < 500) comment = "👍 普通";
+          else comment = "🐢 遅め...";
+          reactionResult.textContent = `反応速度: ${reactionTime} ms ${comment}`;
+          reactionBox.textContent = "もう一回？";
+          reactionBox.style.backgroundColor = "#2196f3";
+          reactionHasStarted = false;
+        }
+      });
+    };
+    const startReactionGame = () => {
+      const reactionBox = document.getElementById("reactionBox");
+      const reactionResult = document.getElementById("reactionResult");
+      reactionBox.style.backgroundColor = "gray";
+      reactionBox.textContent = "待って...";
+      reactionResult.textContent = "";
+      reactionIsWaiting = true;
+      reactionHasStarted = true;
+      reactionTimeoutId = setTimeout(() => {
+        reactionBox.style.backgroundColor = "#4caf50";
+        reactionBox.textContent = "クリック！";
+        reactionStartTime = Date.now();
+        reactionIsWaiting = false;
+      }, 2000 + Math.random() * 3000);
+    };
+    
+    const initSnakeGame = () => {
+      const hiddenContent = document.getElementById('hidden-content');
+      hiddenContent.innerHTML = `
+        <div id="snakeGameContainer" style="text-align:center;">
+          <h2>🐍 スネークゲーム</h2>
+          <canvas id="snakeCanvas" width="400" height="400" style="background-color:#000; border:2px solid #0f0; margin:0 auto;"></canvas>
+          <p>矢印キーで操作してね！</p>
+        </div>
+      `;
+      const canvas = document.getElementById("snakeCanvas");
+      const ctx = canvas.getContext("2d");
+      const gridSize = 20;
+      const tileCount = canvas.width / gridSize;
+      let snake = [{ x: 10, y: 10 }];
+      let apple = { x: 5, y: 5 };
+      let dx = 1, dy = 0;
+      let gameOver = false;
+      function drawSnakeGame() {
+        if (gameOver) return;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize, gridSize);
+        ctx.fillStyle = "#0f0";
+        snake.forEach(part => { ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize); });
+        const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+        if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount ||
+            snake.some(part => part.x === head.x && part.y === head.y)) {
+          gameOver = true;
+          alert("ゲームオーバー！");
+          location.reload();
+          return;
+        }
+        snake.unshift(head);
+        if (head.x === apple.x && head.y === apple.y) {
+          apple = { x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount) };
+        } else {
+          snake.pop();
+        }
+        setTimeout(drawSnakeGame, 100);
+      }
+      document.addEventListener("keydown", snakeKeyDown);
+      function snakeKeyDown(e) {
+        if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -1; }
+        else if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = 1; }
+        else if (e.key === "ArrowLeft" && dx === 0) { dx = -1; dy = 0; }
+        else if (e.key === "ArrowRight" && dx === 0) { dx = 1; dy = 0; }
+      }
+      drawSnakeGame();
+    };
+    
+    const initReversiGame = () => {
+  const hiddenContent = document.getElementById('hidden-content');
+  hiddenContent.innerHTML = `
+    <div id="reversiGame" style="text-align:center;">
+      <h2>リバーシ（オセロ）</h2>
+      <table class="reversi-board" id="reversiBoard"></table>
+      <p id="reversiStatus"></p>
+      <canvas id="scoreChart" width="400" height="200"></canvas>  
+      <p id="gameResult"></p> 
+    </div>
+  `;
+
+  const size = 8, BOT = 2;
+  let board = [], currentPlayer = 1, lastMove = null;
+  const statusElem = document.getElementById("reversiStatus");
+  const gameResultElem = document.getElementById("gameResult");
+
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  const scoreData = {
+    labels: [],
+    datasets: [{
+      label: 'スコア',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      data: [],
+      fill: false,
+      tension: 0.1
+    },
+    {
+      label: '予測スコア',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      data: [],
+      fill: false,
+      tension: 0.1,
+      borderDash: [5, 5] 
+    }]
+  };
+  const scoreChart = new Chart(ctx, {
+    type: 'line',
+    data: scoreData,
+    options: {
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'ターン'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: '評価スコア'
+          },
+          suggestedMin: -1000,
+          suggestedMax: 1000
+        }
+      }
+    }
+  });
+
+  const weights = [
+    [120, -20, 20, 5, 5, 20, -20, 120],
+    [-20, -40, -5, -5, -5, -5, -40, -20],
+    [20, -5, 15, 3, 3, 15, -5, 20],
+    [5, -5, 3, 3, 3, 3, -5, 5],
+    [5, -5, 3, 3, 3, 3, -5, 5],
+    [20, -5, 15, 3, 3, 15, -5, 20],
+    [-20, -40, -5, -5, -5, -5, -40, -20],
+    [120, -20, 20, 5, 5, 20, -20, 120]
+  ];
+
+  const directions = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+  const transpositionTable = new Map();
+  const zobristTable = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => [Math.random() * 2**32, Math.random() * 2**32])
+  );
+
+  let zobristHash = 0;
+  const initZobrist = () => zobristHash = computeHash();
+  const computeHash = () => {
+    let hash = 0;
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const val = board[r][c];
+        if (val) hash ^= zobristTable[r][c][val - 1];
+      }
+    }
+    return hash;
+  };
+
+  const initBoard = () => {
+    board = Array.from({ length: size }, () => Array(size).fill(0));
+    board[3][3] = board[4][4] = BOT;
+    board[3][4] = board[4][3] = 1;
+    initZobrist();
+  };
+
+  const renderBoard = () => {
+    const table = document.getElementById("reversiBoard");
+    table.innerHTML = "";
+    for (let r = 0; r < size; r++) {
+      const tr = document.createElement("tr");
+      for (let c = 0; c < size; c++) {
+        const td = document.createElement("td");
+        td.dataset.row = r;
+        td.dataset.col = c;
+        td.className = board[r][c] === 1 ? "black" : board[r][c] === BOT ? "white" : "";
+        td.style.outline = lastMove?.row === r && lastMove.col === c ? "2px solid red" : "";
+        if (currentPlayer === 1 && board[r][c] === 0 && isLegal(r, c)) td.classList.add("hint");
+        if (currentPlayer === 1) td.addEventListener("click", cellClick);
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    // ステータス表示を更新
+    statusElem.textContent = currentPlayer === 1 ? "あなた(黒)のターン" : "BOT(白)のターン";
+  };
+
+  const isLegal = (r, c) =>
+    board[r][c] === 0 && directions.some(([dr, dc]) => checkDirection(r, c, dr, dc));
+
+  const checkDirection = (r, c, dr, dc) => {
+    let i = r + dr, j = c + dc, found = false;
+    while (i >= 0 && i < size && j >= 0 && j < size) {
+      if (board[i][j] === 0) return false;
+      if (board[i][j] === currentPlayer) return found;
+      found = true;
+      i += dr; j += dc;
+    }
+    return false;
+  };
+
+  const flipDirection = (r, c, dr, dc) => {
+    let i = r + dr, j = c + dc;
+    while (board[i][j] !== currentPlayer) {
+      const cell = document.querySelector(`#reversiBoard tr:nth-child(${i + 1}) td:nth-child(${j + 1})`);
+      if (cell) {
+        cell.classList.add('flip');
+        cell.addEventListener('animationend', () => {
+          cell.classList.remove('flip');
+          // Update the cell color class after flip animation
+          if (currentPlayer === 1) {
+            cell.classList.remove('white');
+            cell.classList.add('black');
+          } else {
+            cell.classList.remove('black');
+            cell.classList.add('white');
+          }
+        }, { once: true });
+      }
+      zobristHash ^= zobristTable[i][j][board[i][j]-1];
+      board[i][j] = currentPlayer;
+      zobristHash ^= zobristTable[i][j][currentPlayer-1];
+      i += dr; j += dc;
+    }
+  };
+
+  const legalMoves = (player) => {
+    const originalPlayer = currentPlayer;
+    currentPlayer = player;
+    const moves = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (isLegal(r, c)) moves.push([r, c]);
+      }
+    }
+    currentPlayer = originalPlayer;
+    return moves;
+  };
+
+  const evaluateBoard = () => {
+    let score = 0, mobility = 0;
+    let stable = 0;
+
+    const stableTable = Array.from({ length: size }, () => Array(size).fill(false));
+    const isStable = (r, c, color) => {
+      if (board[r][c] !== color || stableTable[r][c]) return false;
+      for (let [dr, dc] of directions) {
+        let nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+        if (board[nr][nc] !== color) return false;
+      }
+      return true;
+    };
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const val = board[r][c];
+        if (!val) continue;
+        score += weights[r][c] * (val === BOT ? 1 : -1);
+        if (isStable(r, c, val)) {
+          stable += val === BOT ? 5 : -5;
+          stableTable[r][c] = true;
+        }
+      }
+    }
+
+    mobility += legalMoves(BOT).length - legalMoves(1).length;
+
+    const empty = board.flat().filter(v => v === 0).length;
+    if (empty < 12) {
+      const count = board.flat().reduce((a, b) => {
+        if (b === BOT) a.bot++;
+        else if (b === 1) a.human++;
+        return a;
+      }, { bot: 0, human: 0 });
+      return (count.bot - count.human) * 1000;
+    }
+
+    return score + mobility * 5 + stable;
+  };
+
+  const applyMove = (r, c, player, record = false) => {
+    currentPlayer = player;
+    zobristHash ^= zobristTable[r][c][player - 1];
+    board[r][c] = player;
+    directions.forEach(([dr, dc]) => {
+      if (checkDirection(r, c, dr, dc)) flipDirection(r, c, dr, dc);
+    });
+    if (record) lastMove = { row: r, col: c };
+  };
+
+  const getSortedMoves = (moves, player) =>
+    moves.map(m => ({ move: m, score: weights[m[0]][m[1]] }))
+         .sort((a, b) => player === BOT ? b.score - a.score : a.score - b.score)
+         .map(ms => ms.move);
+
+  const minimax = (depth, alpha, beta, isMax) => {
+    const key = zobristHash + "-" + depth + (isMax ? "M" : "m");
+    if (transpositionTable.has(key)) return transpositionTable.get(key);
+
+    const player = isMax ? BOT : 1;
+    const moves = getSortedMoves(legalMoves(player), player);
+    if (depth === 0 || moves.length === 0) return { score: evaluateBoard() };
+
+    let best = null;
+    if (isMax) {
+      let maxEval = -Infinity;
+      for (const [r, c] of moves) {
+        const snap = board.map(row => row.slice()), hashBackup = zobristHash;
+        applyMove(r, c, BOT);
+        const eval = minimax(depth - 1, alpha, beta, false).score;
+        board = snap; zobristHash = hashBackup;
+        if (eval > maxEval) {
+          maxEval = eval;
+          best = [r, c];
+        }
+        alpha = Math.max(alpha, eval);
+        if (beta <= alpha) break;
+      }
+      const res = { score: maxEval, move: best };
+      transpositionTable.set(key, res);
+      return res;
+    } else {
+      let minEval = Infinity;
+      for (const [r, c] of moves) {
+        const snap = board.map(row => row.slice()), hashBackup = zobristHash;
+        applyMove(r, c, 1);
+        const eval = minimax(depth - 1, alpha, beta, true).score;
+        board = snap; zobristHash = hashBackup;
+        if (eval < minEval) {
+          minEval = eval;
+          best = [r, c];
+        }
+        beta = Math.min(beta, eval);
+        if (beta <= alpha) break;
+      }
+      const res = { score: minEval, move: best };
+      transpositionTable.set(key, res);
+      return res;
+    }
+  };
+
+  const iterativeDeepening = (maxDepth, timeLimit = 1000) => {
+    let best = null, start = Date.now();
+    for (let d = 1; d <= maxDepth; d++) {
+      const result = minimax(d, -Infinity, Infinity, true);
+      if (result.move) best = result;
+      if (Date.now() - start > timeLimit) break;
+    }
+    return best;
+  };
+
+  const checkGameEnd = () => {
+    // プレイヤー1の合法手があるかチェック
+    const playerMoves = legalMoves(1);
+    // BOTの合法手があるかチェック
+    const botMoves = legalMoves(BOT);
+    
+    // 両方とも手がない場合、または盤面が埋まっている場合
+    const empty = board.flat().filter(v => v === 0).length;
+    if ((playerMoves.length === 0 && botMoves.length === 0) || empty === 0) {
+      const botScore = board.flat().filter(v => v === BOT).length;
+      const humanScore = board.flat().filter(v => v === 1).length;
+      if (botScore > humanScore) {
+        gameResultElem.textContent = `BOTの勝ち！ (BOT: ${botScore}, あなた: ${humanScore})`;
+      } else if (botScore < humanScore) {
+        gameResultElem.textContent = `あなたの勝ち！ (あなた: ${humanScore}, BOT: ${botScore})`;
+      } else {
+        gameResultElem.textContent = `引き分け！ (${humanScore}対${botScore})`;
+      }
+      return true;
+    }
+    
+    // プレイヤー1が手がなく、BOTが手がある場合
+    if (playerMoves.length === 0 && botMoves.length > 0) {
+      statusElem.textContent = "あなたはパスです。BOT(白)のターン";
+      setTimeout(() => {
+        currentPlayer = BOT;
+        makeMove();
+      }, 1000);
+      return true;
+    }
+    
+    // BOTが手がなく、プレイヤー1が手がある場合
+    if (botMoves.length === 0 && playerMoves.length > 0) {
+      statusElem.textContent = "BOTはパスです。あなた(黒)のターン";
+      currentPlayer = 1;
+      renderBoard();
+      return true;
+    }
+    
+    return false;
+  };
+
+  const makeMove = () => {
+    const botMoves = legalMoves(BOT);
+    if (botMoves.length > 0) {
+      const { move } = iterativeDeepening(4);
+      if (move) {
+        applyMove(move[0], move[1], BOT, true);
+        lastMove = { row: move[0], col: move[1] };
+        scoreData.labels.push(`ターン ${scoreData.labels.length + 1}`);
+        scoreData.datasets[0].data.push(evaluateBoard());
+
+        const predictedScore = evaluateBoard(); 
+        scoreData.datasets[1].data.push(predictedScore);
+
+        scoreChart.update();
+      }
+    }
+    
+    // ゲーム終了チェック
+    if (!checkGameEnd()) {
+      currentPlayer = 1;
+      renderBoard();
+    }
+  };
+
+  const cellClick = (event) => {
+    const row = +event.target.dataset.row, col = +event.target.dataset.col;
+    if (board[row][col] !== 0 || !isLegal(row, col)) return;
+    
+    applyMove(row, col, 1, true);
+    scoreData.labels.push(`ターン ${scoreData.labels.length + 1}`);
+    scoreData.datasets[0].data.push(evaluateBoard());
+
+    const predictedScore = evaluateBoard(); 
+    scoreData.datasets[1].data.push(predictedScore);
+
+    scoreChart.update();
+    renderBoard();
+    
+    // ゲーム終了チェック
+    if (!checkGameEnd()) {
+      currentPlayer = BOT;
+      renderBoard(); // BOTのターン表示に更新
+      setTimeout(makeMove, 1000);
+    }
+  };
+
+  initBoard();
+  renderBoard();
+};
+
+initReversiGame();
+
+
+
+
+
+
+
+  const initRunnerGame = () => {
+    const hiddenContent = document.getElementById('hidden-content');
+    hiddenContent.innerHTML = `
+      <div id="runnerGameContainer" style="text-align:center;">
+        <h2>🏃 ランナーゲーム</h2>
+        <canvas id="runnerCanvas" width="400" height="200" style="background-color:#87ceeb; border:2px solid #000; display:block; margin:0 auto;"></canvas>
+        <p id="runnerScore">Score: 0</p>
+        <p>スペースキーをタップでジャンプ！</p>
+      </div>
+    `;
+    const canvas = document.getElementById("runnerCanvas");
+    const ctx = canvas.getContext("2d");
+    let runner = { x: 50, y: 150, width: 30, height: 30, vy: 0, jumping: false };
+    const groundY = 150;
+    const gravity = 0.6;
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+    let obstacleInterval = 1500; 
+    let lastObstacleTime = Date.now();
+    
+    function drawRunnerGame() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(0, groundY + runner.height, canvas.width, canvas.height - groundY - runner.height);
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(runner.x, runner.y, runner.width, runner.height);
+      runner.vy += gravity;
+      runner.y += runner.vy;
+      if (runner.y > groundY) {
+        runner.y = groundY;
+        runner.vy = 0;
+        runner.jumping = false;
+      }
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= 5;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        if (runner.x < obs.x + obs.width &&
+            runner.x + runner.width > obs.x &&
+            runner.y < obs.y + obs.height &&
+            runner.y + runner.height > obs.y) {
+          gameOver = true;
+          alert("ゲームオーバー！ スコア: " + score);
+          location.reload();
+          return;
+        }
+        if (obs.x + obs.width < 0) {
+          obstacles.splice(i, 1);
+          score += 10;
+          document.getElementById("runnerScore").textContent = "Score: " + score;
+        }
+      }
+      if (Date.now() - lastObstacleTime > obstacleInterval) {
+        const obsHeight = Math.random() * 20 + 20;
+        obstacles.push({
+          x: canvas.width,
+          y: groundY + runner.height - obsHeight,
+          width: 20,
+          height: obsHeight
+        });
+        lastObstacleTime = Date.now();
+      }
+      requestAnimationFrame(drawRunnerGame);
+    }
+    drawRunnerGame();
+    
+    window.addEventListener("keydown", runnerKeyDown);
+    function runnerKeyDown(e) {
+      if (e.code === "Space" && !e.repeat) {  
+        if (!runner.jumping) {
+          runner.vy = -12;
+          runner.jumping = true;
+        }
+      }
+    }
+  };
+  function openWebOsu() {
+  const hiddenContent = document.getElementById('hidden-content');
+  hiddenContent.innerHTML = `
+    <div style="position: relative; width: 100%; height: 600px; border: 2px solid #ccc; border-radius: 0.8rem; overflow: auto;">
+      <button onclick="closeWebOsu()" style="position: absolute; top: 0.5rem; right: 0.5rem; z-index:2; background:transparent;border:none;color:#f87171;font-size:1.2rem;cursor:pointer;">×</button>
+      <div style="width: 1280px; height: 800px; transform: scale(1); transform-origin: top left;">
+        <iframe src="https://webosu.online/" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
+      </div>
+      <div style="position: absolute; bottom: 0.3rem; right: 0.5rem; font-size: 0.75rem; color: #aaa; font-style: italic;">
+        Powered by BlaNKtext
+      </div>
+    </div>
+  `;
+}
+
+
+  function closeWebOsu() {
+    const hiddenContent = document.getElementById('hidden-content');
+    hiddenContent.innerHTML = "";
+  }
+
+function openMinesweeper() {
+  const hiddenContent = document.getElementById('hidden-content');
+  hiddenContent.innerHTML = `
+    <div style="position: relative; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid #ccc; border-radius: 0.75rem; padding: 1rem; background: #f9fafb; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+      <button onclick="closeMinesweeper()" style="position: absolute; top: 0.5rem; right: 0.5rem; z-index: 2; background: transparent; border: none; color: #ef4444; font-size: 1.2rem; cursor: pointer;">×</button>
+      <h2 style="margin-top: 0; font-size: 1.25rem; color: #374151;">マインスイーパー</h2>
+      <div id="controls" style="margin-bottom: 10px; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+        <button onclick="init(9, 9, 10)" class="difficulty-btn" style="background-color: #f3f4f6; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">初級</button>
+        <button onclick="init(16, 16, 40)" class="difficulty-btn" style="background-color: #f3f4f6; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">中級</button>
+        <button onclick="init(30, 16, 99)" class="difficulty-btn" style="background-color: #f3f4f6; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">上級</button>
+      </div>
+      <div id="status" style="font-weight: bold; margin: 0.5rem 0; color: #1f2937;">🚩 残り: <span id="mine-count">0</span></div>
+      <div id="game" style="display: grid; justify-content: center; gap: 2px;"></div>
+    </div>
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .cell {
+      width: 30px;
+      height: 30px;
+      background-color: #d1d5db;
+      text-align: center;
+      line-height: 30px;
+      font-family: monospace;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 0.25rem;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .cell:active {
+      transform: scale(0.95);
+    }
+    .cell.opened {
+      background-color: #f3f4f6 !important;
+      cursor: default;
+    }
+    .cell.mine {
+      background-color: #f87171 !important;
+    }
+    .cell.flagged {
+      background-color: #c7d2fe !important;
+    }
+    .difficulty-btn.active {
+      background-color: #3b82f6 !important;
+      color: white;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.text = `
+    let board = [], width, height, mines, firstClick, openedCount, flaggedCount;
+
+    function init(w, h, m) {
+      width = w;
+      height = h;
+      mines = m;
+      board = [];
+      firstClick = true;
+      openedCount = 0;
+      flaggedCount = 0;
+      const game = document.getElementById('game');
+      game.innerHTML = '';
+      game.style.gridTemplateColumns = \`repeat(\${width}, 30px)\`;
+      game.style.gridTemplateRows = \`repeat(\${height}, 30px)\`;
+      document.getElementById('status').style.color = '#1f2937';
+      updateMineCount();
+
+      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+      const idx = [10, 40, 99].indexOf(m);
+      if (idx !== -1) document.querySelectorAll('.difficulty-btn')[idx].classList.add('active');
+
+      for (let y = 0; y < height; y++) {
+        board[y] = [];
+        for (let x = 0; x < width; x++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.oncontextmenu = (e) => {
+            e.preventDefault();
+            toggleFlag(x, y);
+          };
+          cell.onclick = () => handleClick(x, y);
+          game.appendChild(cell);
+
+          board[y][x] = {
+            el: cell,
+            mine: false,
+            opened: false,
+            flagged: false,
+            adjacent: 0
+          };
+        }
+      }
+    }
+
+    function handleClick(x, y) {
+      const cell = board[y][x];
+      if (cell.opened || cell.flagged) return;
+
+      if (firstClick) {
+        placeMines(x, y);
+        calcAdjacent();
+        firstClick = false;
+      }
+
+      openCell(x, y);
+      checkWin();
+    }
+
+    function toggleFlag(x, y) {
+      const cell = board[y][x];
+      if (cell.opened) return;
+      cell.flagged = !cell.flagged;
+      if (cell.flagged) {
+        flaggedCount++;
+        cell.el.textContent = '🚩';
+        cell.el.classList.add('flagged');
+      } else {
+        flaggedCount--;
+        cell.el.textContent = '';
+        cell.el.classList.remove('flagged');
+      }
+      updateMineCount();
+    }
+
+    function updateMineCount() {
+      const left = Math.max(mines - flaggedCount, 0);
+      document.getElementById('mine-count').textContent = left;
+    }
+
+    function placeMines(safeX, safeY) {
+      let placed = 0;
+      while (placed < mines) {
+        const x = Math.floor(Math.random() * width);
+        const y = Math.floor(Math.random() * height);
+        if (Math.abs(x - safeX) <= 1 && Math.abs(y - safeY) <= 1) continue;
+        if (!board[y][x].mine) {
+          board[y][x].mine = true;
+          placed++;
+        }
+      }
+    }
+
+    function calcAdjacent() {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (board[y][x].mine) continue;
+          let count = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const nx = x + dx, ny = y + dy;
+              if (nx >= 0 && ny >= 0 && nx < width && ny < height) {
+                if (board[ny][nx].mine) count++;
+              }
+            }
+          }
+          board[y][x].adjacent = count;
+        }
+      }
+    }
+
+    function openCell(x, y) {
+      const cell = board[y][x];
+      if (cell.opened || cell.flagged) return;
+      cell.opened = true;
+      cell.el.classList.add('opened');
+      openedCount++;
+
+      if (cell.mine) {
+        cell.el.textContent = '💣';
+        cell.el.classList.add('mine');
+        showStatus('ゲームオーバー！', true);
+        revealAll();
+        return;
+      }
+
+      if (cell.adjacent > 0) {
+        cell.el.textContent = cell.adjacent;
+      } else {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && ny >= 0 && nx < width && ny < height) {
+              openCell(nx, ny);
+            }
+          }
+        }
+      }
+    }
+
+    function revealAll() {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const cell = board[y][x];
+          if (cell.mine && !cell.opened) {
+            cell.el.textContent = '💣';
+            cell.el.classList.add('mine');
+          }
+          cell.el.onclick = null;
+          cell.el.oncontextmenu = null;
+        }
+      }
+    }
+
+    function checkWin() {
+      if (openedCount === width * height - mines) {
+        showStatus('🎉 クリア！', false);
+        revealAll();
+      }
+    }
+
+    function showStatus(msg, isFail) {
+      const status = document.getElementById('status');
+      status.textContent = msg;
+      status.style.color = isFail ? '#dc2626' : '#10b981';
+    }
+
+    init(9, 9, 10);
+  `;
+  document.body.appendChild(script);
+}
+function closeMinesweeper() {
+  document.getElementById('hidden-content').innerHTML = '';
+}
+  </script>
+  </body>
+</html>
