@@ -267,7 +267,9 @@
       footer { font-size: 0.75rem; }
     }
     table.reversi-board {
-      margin: 10px auto; border-collapse: collapse;
+      margin: 10px auto;
+      border-collapse: collapse;
+      position: relative;
     }
     .reversi-board td {
       width: 40px;
@@ -290,6 +292,24 @@
 
     table.reversi-board td.black { background: radial-gradient(circle, #000 60%, transparent 60%); }
     table.reversi-board td.white { background: radial-gradient(circle, #fff 60%, transparent 60%); }
+
+    .ai-viz-overlay {
+      pointer-events: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      color: white;
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 4px;
+    }
+    .toggle-container {
+      margin: 8px;
+    }
 
     /* Flip animation */
     @keyframes flip {
@@ -416,6 +436,7 @@
     window.addEventListener("DOMContentLoaded", detectDebugger);
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gpu.js@latest/dist/gpu-browser.min.js"></script>
   <body>
     <header>
       <h1>Welcome to Astral Site</h1>
@@ -458,7 +479,7 @@
     </main>
     <footer>
       <p>&copy; 2025 AstralSHOP. All Rights Reserved.</p>
-      <p>Site Version 2025.4.16.0815</p>
+      <p>Site Version 2025.4.16.2105</p>
     </footer>
     <script>
     const showNotice = () => {
@@ -830,15 +851,48 @@
       <h2>リバーシ（オセロ）</h2>
       <table class="reversi-board" id="reversiBoard"></table>
       <p id="reversiStatus"></p>
+      <label class="toggle-container" style="user-select: none; cursor: pointer;">
+        <input type="checkbox" id="toggleAIMode" style="vertical-align: middle;">
+        <span id="modeLabel" style="vertical-align: middle; margin-left: 8px;">AIモード: 本気</span>
+      </label>
+      <br>
+      <label class="toggle-container" style="user-select: none; cursor: pointer;">
+        <input type="checkbox" id="toggleAIViz" style="vertical-align: middle;">
+        <span id="vizLabel" style="vertical-align: middle; margin-left: 8px;">AI思考可視化モード: OFF</span>
+      </label>
+      <br>
+      <h3 style="margin-top:1em;">アルゴリズム可視化ログ</h3>
+      <div id="searchTreeVisualization" style="height:300px; overflow:auto; border:1px solid #ccc; text-align:left; font-size:12px; white-space: pre-wrap; background:#f9f9f9; padding:4px; font-weight: bold;"></div>
+      <br>
       <canvas id="scoreChart" width="400" height="200"></canvas>  
-      <p id="gameResult"></p> 
+      <p id="gameResult" style="font-size:20px; font-weight:bold; color:#333;"></p> 
     </div>
   `;
 
-  const size = 8, BOT = 2;
   let board = [], currentPlayer = 1, lastMove = null;
   const statusElem = document.getElementById("reversiStatus");
   const gameResultElem = document.getElementById("gameResult");
+  let aiSeriousMode = true;  
+  let aiVisualMode = false;
+
+  let searchLog = [];
+
+  const toggleAIModeEl = document.getElementById("toggleAIMode");
+  const modeLabel = document.getElementById("modeLabel");
+  toggleAIModeEl.checked = true;
+  toggleAIModeEl.addEventListener("change", () => {
+    aiSeriousMode = toggleAIModeEl.checked;
+    modeLabel.textContent = aiSeriousMode ? "AIモード: 本気" : "AIモード: 舐めプ";
+  });
+
+  const toggleAIVizEl = document.getElementById("toggleAIViz");
+  const vizLabel = document.getElementById("vizLabel");
+  toggleAIVizEl.checked = false;
+  toggleAIVizEl.addEventListener("change", () => {
+    aiVisualMode = toggleAIVizEl.checked;
+    vizLabel.textContent = aiVisualMode ? "AI思考可視化モード: ON" : "AI思考可視化モード: OFF";
+    renderBoard();
+  });
 
   const ctx = document.getElementById('scoreChart').getContext('2d');
   const scoreData = {
@@ -864,23 +918,85 @@
     data: scoreData,
     options: {
       scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'ターン'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: '評価スコア'
-          },
-          suggestedMin: -1000,
-          suggestedMax: 1000
-        }
+        x: { title: { display: true, text: 'ターン' } },
+        y: { title: { display: true, text: '評価スコア' }, suggestedMin: -1000, suggestedMax: 1000 }
       }
     }
   });
+
+  let bitHuman = (1n << BigInt(3 * 8 + 4)) | (1n << BigInt(4 * 8 + 3));
+  let bitBot   = (1n << BigInt(3 * 8 + 3)) | (1n << BigInt(4 * 8 + 4));
+  const MASK_LEFT  = 0x7f7f7f7f7f7f7f7fn;
+  const MASK_RIGHT = 0xfefefefefefefefen;
+
+  const shiftNorth = (x) => x >> 8n;
+  const shiftSouth = (x) => x << 8n;
+  const shiftEast  = (x) => (x << 1n) & MASK_RIGHT;
+  const shiftWest  = (x) => (x >> 1n) & MASK_LEFT;
+  const shiftNorthEast = (x) => (x >> 7n) & MASK_RIGHT;
+  const shiftNorthWest = (x) => (x >> 9n) & MASK_LEFT;
+  const shiftSouthEast = (x) => (x << 9n) & MASK_RIGHT;
+  const shiftSouthWest = (x) => (x << 7n) & MASK_LEFT;
+
+  function movesInDirection(bitPlayer, bitOpp, shiftFunc) {
+    let mask = shiftFunc(bitPlayer) & bitOpp;
+    for (let i = 0; i < 5; i++) {
+      mask |= shiftFunc(mask) & bitOpp;
+    }
+    return shiftFunc(mask);
+  }
+
+  function getLegalMovesBit(bitPlayer, bitOpp) {
+    const empty = ~(bitPlayer | bitOpp);
+    let moves = 0n;
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftNorth);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftSouth);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftEast);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftWest);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftNorthEast);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftNorthWest);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftSouthEast);
+    moves |= movesInDirection(bitPlayer, bitOpp, shiftSouthWest);
+    return moves & empty;
+  }
+
+  function getMoveListFromBit(movesBit) {
+    const moves = [];
+    for (let pos = 0; pos < 64; pos++) {
+      if (movesBit & (1n << BigInt(pos))) moves.push(pos);
+    }
+    return moves;
+  }
+
+  function makeMoveBit(bitPlayer, bitOpp, move) {
+    const moveBit = 1n << BigInt(move);
+    let flips = 0n;
+    const directions = [shiftNorth, shiftSouth, shiftEast, shiftWest,
+                        shiftNorthEast, shiftNorthWest, shiftSouthEast, shiftSouthWest];
+    for (const shiftFunc of directions) {
+      let flipped = 0n;
+      let pos = shiftFunc(moveBit);
+      while (pos && (pos & bitOpp)) {
+        flipped |= pos;
+        pos = shiftFunc(pos);
+      }
+      if (pos & bitPlayer) {
+        flips |= flipped;
+      }
+    }
+    bitPlayer |= moveBit | flips;
+    bitOpp &= ~flips;
+    return { bitPlayer, bitOpp };
+  }
+
+  function bitCount(n) {
+    let count = 0;
+    while (n) {
+      count++;
+      n &= n - 1n;
+    }
+    return count;
+  }
 
   const weights = [
     [120, -20, 20, 5, 5, 20, -20, 120],
@@ -892,31 +1008,207 @@
     [-20, -40, -5, -5, -5, -5, -40, -20],
     [120, -20, 20, 5, 5, 20, -20, 120]
   ];
+  const weightLinear = [];
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      weightLinear.push(weights[r][c]);
+    }
+  }
+
+  const gpu = new GPU();
+  const evalKernel = gpu.createKernel(function(boardArray, weights) {
+    return boardArray[this.thread.x] * weights[this.thread.x];
+  }).setOutput([64]);
+
+  function evaluateBoardGPU(bitBot, bitHuman) {
+    const boardArray = [];
+    for (let pos = 0; pos < 64; pos++) {
+      const mask = 1n << BigInt(pos);
+      if (bitBot & mask) boardArray.push(1);
+      else if (bitHuman & mask) boardArray.push(-1);
+      else boardArray.push(0);
+    }
+    const staticScores = evalKernel(boardArray, weightLinear);
+    let staticScore = 0;
+    for (let i = 0; i < staticScores.length; i++) {
+      staticScore += staticScores[i];
+    }
+    const totalPieces = bitCount(bitBot) + bitCount(bitHuman);
+    const empty = 64 - totalPieces;
+    if (empty < 12) return (bitCount(bitBot) - bitCount(bitHuman)) * 1000;
+    return staticScore * 5 + 5000;
+  }
+
+  function evaluateBitEnhanced(bitBot, bitHuman) {
+    let staticScore = 0;
+    for (let pos = 0; pos < 64; pos++) {
+      const mask = 1n << BigInt(pos);
+      if (bitBot & mask) staticScore += weightLinear[pos];
+      else if (bitHuman & mask) staticScore -= weightLinear[pos];
+    }
+    const totalPieces = bitCount(bitBot) + bitCount(bitHuman);
+    const empty = 64 - totalPieces;
+    if (empty < 12) return (bitCount(bitBot) - bitCount(bitHuman)) * 1000;
+    const botLegal = bitCount(getLegalMovesBit(bitBot, bitHuman));
+    const humanLegal = bitCount(getLegalMovesBit(bitHuman, bitBot));
+    const mobilityScore = (botLegal - humanLegal) * 10;
+    return staticScore + mobilityScore;
+  }
+
+  const transpositionTable = {};
+
+  function hashBoard() {
+    return bitBot.toString() + '-' + bitHuman.toString();
+  }
 
   const directions = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
-  const transpositionTable = new Map();
-  const zobristTable = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => [Math.random() * 2**32, Math.random() * 2**32])
-  );
-
-  let zobristHash = 0;
-  const initZobrist = () => zobristHash = computeHash();
-  const computeHash = () => {
-    let hash = 0;
+  const isLegalForPlayer = (r, c, player) => {
+    if (board[r][c] !== 0) return false;
+    return directions.some(([dr, dc]) => checkDirectionForPlayer(r, c, dr, dc, player));
+  };
+  const checkDirectionForPlayer = (r, c, dr, dc, player) => {
+    let i = r + dr, j = c + dc;
+    let found = false;
+    const opponent = player === 1 ? BOT : 1;
+    while (i >= 0 && i < size && j >= 0 && j < size) {
+      if (board[i][j] === 0) return false;
+      if (board[i][j] === player) return found;
+      if (board[i][j] !== opponent) return false;
+      found = true;
+      i += dr;
+      j += dc;
+    }
+    return false;
+  };
+  const legalMovesForPlayer = (player) => {
+    const moves = [];
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
-        const val = board[r][c];
-        if (val) hash ^= zobristTable[r][c][val - 1];
+        if (isLegalForPlayer(r, c, player)) moves.push([r, c]);
       }
     }
-    return hash;
+    return moves;
   };
+  function minimaxBit(bitBot, bitHuman, depth, alpha, beta, maximizingPlayer, currentDepth = 0) {
+    const indent = "  ".repeat(currentDepth);
+    searchLog.push(`${indent}→ 深さ ${currentDepth} / 残り ${depth} / ${maximizingPlayer ? "Max" : "Min"} 開始, α=${alpha}, β=${beta}`);
+    const key = hashBoard() + '-' + depth + (maximizingPlayer ? 'max' : 'min');
+    if (transpositionTable[key] !== undefined) {
+      searchLog.push(`${indent}　既キャッシュヒット: score=${transpositionTable[key].score}`);
+      return transpositionTable[key];
+    }
+    let legal = maximizingPlayer 
+      ? getLegalMovesBit(bitBot, bitHuman)
+      : getLegalMovesBit(bitHuman, bitBot);
+    if (depth === 0 || legal === 0n) {
+      const score = aiSeriousMode ? evaluateBoardGPU(bitBot, bitHuman)
+                                  : evaluateBitEnhanced(bitBot, bitHuman);
+      searchLog.push(`${indent}← 葉ノード: score=${score}`);
+      return { score };
+    }
+    let bestMove = null;
+    let moves = getMoveListFromBit(legal);
+    if (aiSeriousMode) {
+      if (maximizingPlayer) {
+        moves.sort((m1, m2) => {
+          let state1 = makeMoveBit(bitBot, bitHuman, m1);
+          let state2 = makeMoveBit(bitBot, bitHuman, m2);
+          let eval1 = evaluateBoardGPU(state1.bitPlayer, state1.bitOpp);
+          let eval2 = evaluateBoardGPU(state2.bitPlayer, state2.bitOpp);
+          return eval2 - eval1;
+        });
+      } else {
+        moves.sort((m1, m2) => {
+          let state1 = makeMoveBit(bitHuman, bitBot, m1);
+          let state2 = makeMoveBit(bitHuman, bitBot, m2);
+          let eval1 = evaluateBoardGPU(state1.bitOpp, state1.bitPlayer);
+          let eval2 = evaluateBoardGPU(state2.bitOpp, state2.bitPlayer);
+          return eval1 - eval2;
+        });
+      }
+    }
+    if (maximizingPlayer) {
+      let maxScore = -Infinity;
+      for (const move of moves) {
+        const newState = makeMoveBit(bitBot, bitHuman, move);
+        const res = minimaxBit(newState.bitPlayer, newState.bitOpp, depth - 1, alpha, beta, false, currentDepth + 1);
+        if (res.score > maxScore) { 
+          maxScore = res.score; 
+          bestMove = move; 
+        }
+        alpha = Math.max(alpha, res.score);
+        searchLog.push(`${indent}　Maxノード: move ${move} 得点=${res.score}, 更新後α=${alpha}`);
+        if (beta <= alpha) {
+          searchLog.push(`${indent}　βカット発生: α=${alpha} β=${beta}`);
+          break;
+        }
+      }
+      const result = { score: maxScore, move: bestMove };
+      transpositionTable[key] = result;
+      searchLog.push(`${indent}← Maxノード終了: score=${maxScore} 最良手=${bestMove}`);
+      return result;
+    } else {
+      let minScore = Infinity;
+      for (const move of moves) {
+        const newState = makeMoveBit(bitHuman, bitBot, move);
+        const res = minimaxBit(newState.bitOpp, newState.bitPlayer, depth - 1, alpha, beta, true, currentDepth + 1);
+        if (res.score < minScore) { 
+          minScore = res.score; 
+          bestMove = move; 
+        }
+        beta = Math.min(beta, res.score);
+        searchLog.push(`${indent}　Minノード: move ${move} 得点=${res.score}, 更新後β=${beta}`);
+        if (beta <= alpha) {
+          searchLog.push(`${indent}　αカット発生: α=${alpha} β=${beta}`);
+          break;
+        }
+      }
+      const result = { score: minScore, move: bestMove };
+      transpositionTable[key] = result;
+      searchLog.push(`${indent}← Minノード終了: score=${minScore} 最良手=${bestMove}`);
+      return result;
+    }
+  }
+
+  function iterativeDeepeningBit(maxDepth, timeLimit) {
+    let best = null, start = Date.now();
+    searchLog.push(`===== 反復深化探索開始: 最大深度 ${maxDepth}, 制限時間 ${timeLimit}ms =====`);
+    for (let d = 1; d <= maxDepth; d++) {
+      searchLog.push(`--- 探索深度 ${d} で探索開始 ---`);
+      const result = minimaxBit(bitBot, bitHuman, d, -Infinity, Infinity, true, 0);
+      if (result.move !== undefined) best = result;
+      searchLog.push(`--- 探索深度 ${d} 終了, 得点=${result.score} ---`);
+      if (Date.now() - start > timeLimit) {
+        searchLog.push(`*** 時間制限到達: ${Date.now()-start}ms ***`);
+        break;
+      }
+    }
+    searchLog.push(`===== 反復深化探索終了: 最終結果: score=${best ? best.score : "undefined"}, move=${best ? best.move : "undefined"} =====`);
+    updateSearchTreeVisualization();
+    return best;
+  }
+
+  function updateSearchTreeVisualization() {
+    const vizElem = document.getElementById("searchTreeVisualization");
+    vizElem.textContent = searchLog.join("\n");
+  }
+
+  function updateBoardFromBit() {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const pos = r * 8 + c;
+        const mask = 1n << BigInt(pos);
+        if (bitBot & mask) board[r][c] = BOT;
+        else if (bitHuman & mask) board[r][c] = 1;
+        else board[r][c] = 0;
+      }
+    }
+  }
 
   const initBoard = () => {
     board = Array.from({ length: size }, () => Array(size).fill(0));
     board[3][3] = board[4][4] = BOT;
     board[3][4] = board[4][3] = 1;
-    initZobrist();
   };
 
   const renderBoard = () => {
@@ -929,275 +1221,174 @@
         td.dataset.row = r;
         td.dataset.col = c;
         td.className = board[r][c] === 1 ? "black" : board[r][c] === BOT ? "white" : "";
-        td.style.outline = lastMove?.row === r && lastMove.col === c ? "2px solid red" : "";
-        if (currentPlayer === 1 && board[r][c] === 0 && isLegal(r, c)) td.classList.add("hint");
-        if (currentPlayer === 1) td.addEventListener("click", cellClick);
+        td.style.outline = lastMove && lastMove.row === r && lastMove.col === c ? "2px solid red" : "";
+        if (currentPlayer === 1 && board[r][c] === 0 && isLegalForPlayer(r, c, 1))
+          td.classList.add("hint");
+        if (currentPlayer === 1)
+          td.addEventListener("click", cellClick);
         tr.appendChild(td);
       }
       table.appendChild(tr);
     }
-    // ステータス表示を更新
     statusElem.textContent = currentPlayer === 1 ? "あなた(黒)のターン" : "BOT(白)のターン";
-  };
 
-  const isLegal = (r, c) =>
-    board[r][c] === 0 && directions.some(([dr, dc]) => checkDirection(r, c, dr, dc));
-
-  const checkDirection = (r, c, dr, dc) => {
-    let i = r + dr, j = c + dc, found = false;
-    while (i >= 0 && i < size && j >= 0 && j < size) {
-      if (board[i][j] === 0) return false;
-      if (board[i][j] === currentPlayer) return found;
-      found = true;
-      i += dr; j += dc;
+    if (aiVisualMode && currentPlayer !== 1) {
+      renderAIVizOverlay();
     }
-    return false;
   };
 
-  const flipDirection = (r, c, dr, dc) => {
-    let i = r + dr, j = c + dc;
-    while (board[i][j] !== currentPlayer) {
-      const cell = document.querySelector(`#reversiBoard tr:nth-child(${i + 1}) td:nth-child(${j + 1})`);
+  const renderAIVizOverlay = () => {
+    const legal = getLegalMovesBit(bitBot, bitHuman);
+    const moves = getMoveListFromBit(legal);
+    moves.forEach(move => {
+      const newState = makeMoveBit(bitBot, bitHuman, move);
+      const evalScore = aiSeriousMode ? evaluateBoardGPU(newState.bitPlayer, newState.bitOpp)
+                                      : evaluateBitEnhanced(newState.bitPlayer, newState.bitOpp);
+      const r = Math.floor(move / size), c = move % size;
+      const cell = document.querySelector(`#reversiBoard tr:nth-child(${r + 1}) td:nth-child(${c + 1})`);
       if (cell) {
-        cell.classList.add('flip');
-        cell.addEventListener('animationend', () => {
-          cell.classList.remove('flip');
-          // Update the cell color class after flip animation
-          if (currentPlayer === 1) {
-            cell.classList.remove('white');
-            cell.classList.add('black');
-          } else {
-            cell.classList.remove('black');
-            cell.classList.add('white');
-          }
-        }, { once: true });
+        const overlay = document.createElement("div");
+        overlay.className = "ai-viz-overlay";
+        overlay.textContent = evalScore;
+        cell.style.position = "relative";
+        cell.appendChild(overlay);
       }
-      zobristHash ^= zobristTable[i][j][board[i][j]-1];
-      board[i][j] = currentPlayer;
-      zobristHash ^= zobristTable[i][j][currentPlayer-1];
-      i += dr; j += dc;
-    }
-  };
-
-  const legalMoves = (player) => {
-    const originalPlayer = currentPlayer;
-    currentPlayer = player;
-    const moves = [];
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        if (isLegal(r, c)) moves.push([r, c]);
-      }
-    }
-    currentPlayer = originalPlayer;
-    return moves;
-  };
-
-  const evaluateBoard = () => {
-    let score = 0, mobility = 0;
-    let stable = 0;
-
-    const stableTable = Array.from({ length: size }, () => Array(size).fill(false));
-    const isStable = (r, c, color) => {
-      if (board[r][c] !== color || stableTable[r][c]) return false;
-      for (let [dr, dc] of directions) {
-        let nr = r + dr, nc = c + dc;
-        if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
-        if (board[nr][nc] !== color) return false;
-      }
-      return true;
-    };
-
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        const val = board[r][c];
-        if (!val) continue;
-        score += weights[r][c] * (val === BOT ? 1 : -1);
-        if (isStable(r, c, val)) {
-          stable += val === BOT ? 5 : -5;
-          stableTable[r][c] = true;
-        }
-      }
-    }
-
-    mobility += legalMoves(BOT).length - legalMoves(1).length;
-
-    const empty = board.flat().filter(v => v === 0).length;
-    if (empty < 12) {
-      const count = board.flat().reduce((a, b) => {
-        if (b === BOT) a.bot++;
-        else if (b === 1) a.human++;
-        return a;
-      }, { bot: 0, human: 0 });
-      return (count.bot - count.human) * 1000;
-    }
-
-    return score + mobility * 5 + stable;
-  };
-
-  const applyMove = (r, c, player, record = false) => {
-    currentPlayer = player;
-    zobristHash ^= zobristTable[r][c][player - 1];
-    board[r][c] = player;
-    directions.forEach(([dr, dc]) => {
-      if (checkDirection(r, c, dr, dc)) flipDirection(r, c, dr, dc);
     });
-    if (record) lastMove = { row: r, col: c };
   };
 
-  const getSortedMoves = (moves, player) =>
-    moves.map(m => ({ move: m, score: weights[m[0]][m[1]] }))
-         .sort((a, b) => player === BOT ? b.score - a.score : a.score - b.score)
-         .map(ms => ms.move);
-
-  const minimax = (depth, alpha, beta, isMax) => {
-    const key = zobristHash + "-" + depth + (isMax ? "M" : "m");
-    if (transpositionTable.has(key)) return transpositionTable.get(key);
-
-    const player = isMax ? BOT : 1;
-    const moves = getSortedMoves(legalMoves(player), player);
-    if (depth === 0 || moves.length === 0) return { score: evaluateBoard() };
-
-    let best = null;
-    if (isMax) {
-      let maxEval = -Infinity;
-      for (const [r, c] of moves) {
-        const snap = board.map(row => row.slice()), hashBackup = zobristHash;
-        applyMove(r, c, BOT);
-        const eval = minimax(depth - 1, alpha, beta, false).score;
-        board = snap; zobristHash = hashBackup;
-        if (eval > maxEval) {
-          maxEval = eval;
-          best = [r, c];
-        }
-        alpha = Math.max(alpha, eval);
-        if (beta <= alpha) break;
-      }
-      const res = { score: maxEval, move: best };
-      transpositionTable.set(key, res);
-      return res;
-    } else {
-      let minEval = Infinity;
-      for (const [r, c] of moves) {
-        const snap = board.map(row => row.slice()), hashBackup = zobristHash;
-        applyMove(r, c, 1);
-        const eval = minimax(depth - 1, alpha, beta, true).score;
-        board = snap; zobristHash = hashBackup;
-        if (eval < minEval) {
-          minEval = eval;
-          best = [r, c];
-        }
-        beta = Math.min(beta, eval);
-        if (beta <= alpha) break;
-      }
-      const res = { score: minEval, move: best };
-      transpositionTable.set(key, res);
-      return res;
-    }
+  const cellClick = (e) => {
+    const r = parseInt(e.target.dataset.row), c = parseInt(e.target.dataset.col);
+    if (!isLegalForPlayer(r, c, 1)) return;
+    const pos = r * 8 + c;
+    const result = makeMoveBit(bitHuman, bitBot, pos);
+    bitHuman = result.bitPlayer;
+    bitBot = result.bitOpp;
+    currentPlayer = BOT;
+    lastMove = { row: r, col: c };
+    updateBoardFromBit();
+    renderBoard();
+    updateScoreChart();
+    setTimeout(botTurn, 100);
   };
 
-  const iterativeDeepening = (maxDepth, timeLimit = 1000) => {
-    let best = null, start = Date.now();
-    for (let d = 1; d <= maxDepth; d++) {
-      const result = minimax(d, -Infinity, Infinity, true);
-      if (result.move) best = result;
-      if (Date.now() - start > timeLimit) break;
-    }
-    return best;
+  const userCanMove = () => {
+    return legalMovesForPlayer(1).length > 0;
   };
 
   const checkGameEnd = () => {
-    // プレイヤー1の合法手があるかチェック
-    const playerMoves = legalMoves(1);
-    // BOTの合法手があるかチェック
-    const botMoves = legalMoves(BOT);
-    
-    // 両方とも手がない場合、または盤面が埋まっている場合
+    const playerMoves = legalMovesForPlayer(1);
+    const botMoves = legalMovesForPlayer(BOT);
     const empty = board.flat().filter(v => v === 0).length;
     if ((playerMoves.length === 0 && botMoves.length === 0) || empty === 0) {
       const botScore = board.flat().filter(v => v === BOT).length;
       const humanScore = board.flat().filter(v => v === 1).length;
       if (botScore > humanScore) {
-        gameResultElem.textContent = `BOTの勝ち！ (BOT: ${botScore}, あなた: ${humanScore})`;
+        gameResultElem.textContent = `BOTの勝ち！ (BOT: ${botScore} vs あなた: ${humanScore})`;
+        gameResultElem.style.color = "red";
       } else if (botScore < humanScore) {
-        gameResultElem.textContent = `あなたの勝ち！ (あなた: ${humanScore}, BOT: ${botScore})`;
+        gameResultElem.textContent = `あなたの勝ち！ (あなた: ${humanScore} vs BOT: ${botScore})`;
+        gameResultElem.style.color = "blue";
       } else {
-        gameResultElem.textContent = `引き分け！ (${humanScore}対${botScore})`;
+        gameResultElem.textContent = `引き分け！ (${humanScore} vs ${botScore})`;
+        gameResultElem.style.color = "green";
       }
       return true;
     }
-    
-    // プレイヤー1が手がなく、BOTが手がある場合
-    if (playerMoves.length === 0 && botMoves.length > 0) {
-      statusElem.textContent = "あなたはパスです。BOT(白)のターン";
-      setTimeout(() => {
-        currentPlayer = BOT;
-        makeMove();
-      }, 1000);
-      return true;
-    }
-    
-    // BOTが手がなく、プレイヤー1が手がある場合
-    if (botMoves.length === 0 && playerMoves.length > 0) {
-      statusElem.textContent = "BOTはパスです。あなた(黒)のターン";
-      currentPlayer = 1;
-      renderBoard();
-      return true;
-    }
-    
     return false;
   };
 
+  const makeAIMove = () => {
+    searchLog = [];
+    if (aiSeriousMode) {
+      return iterativeDeepeningBit(32, 10000);
+    } else {
+      return iterativeDeepeningBit(3, 1000);
+    }
+  };
+
   const makeMove = () => {
-    const botMoves = legalMoves(BOT);
-    if (botMoves.length > 0) {
-      const { move } = iterativeDeepening(4);
-      if (move) {
-        applyMove(move[0], move[1], BOT, true);
-        lastMove = { row: move[0], col: move[1] };
+    const legal = getLegalMovesBit(bitBot, bitHuman);
+    if (legal !== 0n) {
+      const result = makeAIMove();
+      if (result && result.move !== undefined) {
+        const move = result.move;
+        const r = Math.floor(move / size), c = move % size;
+        const newState = makeMoveBit(bitBot, bitHuman, move);
+        bitBot = newState.bitPlayer;
+        bitHuman = newState.bitOpp;
+        updateBoardFromBit();
+        lastMove = { row: r, col: c };
         scoreData.labels.push(`ターン ${scoreData.labels.length + 1}`);
-        scoreData.datasets[0].data.push(evaluateBoard());
-
-        const predictedScore = evaluateBoard(); 
-        scoreData.datasets[1].data.push(predictedScore);
-
+        const evalScore = aiSeriousMode ? evaluateBoardGPU(bitBot, bitHuman)
+                                        : evaluateBitEnhanced(bitBot, bitHuman);
+        scoreData.datasets[0].data.push(evalScore);
+        scoreData.datasets[1].data.push(evalScore);
         scoreChart.update();
       }
     }
-    
-    // ゲーム終了チェック
-    if (!checkGameEnd()) {
+    if (legalMovesForPlayer(1).length > 0 && !checkGameEnd()) {
       currentPlayer = 1;
       renderBoard();
+    } else if (!checkGameEnd()) {
+      statusElem.textContent = "あなたは着手できません。BOTが連続で置きます…";
+      setTimeout(botTurn, 1000);
+      return;
     }
   };
 
-  const cellClick = (event) => {
-    const row = +event.target.dataset.row, col = +event.target.dataset.col;
-    if (board[row][col] !== 0 || !isLegal(row, col)) return;
-    
-    applyMove(row, col, 1, true);
-    scoreData.labels.push(`ターン ${scoreData.labels.length + 1}`);
-    scoreData.datasets[0].data.push(evaluateBoard());
-
-    const predictedScore = evaluateBoard(); 
-    scoreData.datasets[1].data.push(predictedScore);
-
-    scoreChart.update();
-    renderBoard();
-    
-    // ゲーム終了チェック
-    if (!checkGameEnd()) {
-      currentPlayer = BOT;
-      renderBoard(); // BOTのターン表示に更新
-      setTimeout(makeMove, 1000);
+  const botTurn = () => {
+    const moves = getLegalMovesBit(bitBot, bitHuman);
+    if (moves === 0n) {
+      currentPlayer = 1;
+      renderBoard();
+      return;
     }
+    const best = makeAIMove();
+    if (best && best.move !== undefined) {
+      const move = best.move;
+      const result = makeMoveBit(bitBot, bitHuman, move);
+      bitBot = result.bitPlayer;
+      bitHuman = result.bitOpp;
+      lastMove = { row: Math.floor(move / 8), col: move % 8 };
+      updateBoardFromBit();
+      renderBoard();
+      updateScoreChart();
+    }
+    if (legalMovesForPlayer(1).length > 0 && !checkGameEnd()) {
+      currentPlayer = 1;
+      renderBoard();
+    } else if (!checkGameEnd()) {
+      setTimeout(botTurn, 1000);
+    }
+  };
+
+  const updateScoreChart = () => {
+    const turn = scoreData.labels.length + 1;
+    const evalScore = aiSeriousMode ? evaluateBoardGPU(bitBot, bitHuman)
+                                    : evaluateBitEnhanced(bitBot, bitHuman);
+    const score = bitCount(bitBot) - bitCount(bitHuman);
+    scoreData.labels.push(`ターン ${turn}`);
+    scoreData.datasets[0].data.push(score);
+    scoreData.datasets[1].data.push(evalScore / 100);
+    scoreChart.update();
   };
 
   initBoard();
+  updateBoardFromBit();
   renderBoard();
 };
 
 initReversiGame();
+
+
+
+
+
+
+
+
+
+
 
 
 
